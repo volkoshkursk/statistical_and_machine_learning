@@ -36,15 +36,32 @@
 	
 	\begin{frame}
 		\frametitle{Обучение с учителем}
-		Выборка из генеральной случайной величины
-		\begin{equation}\bm{X} \in \mathbb{R}^{n\times p}, \;\;\mathbf{y}\in \mathbb{R}^n\end{equation}
 		
+		Выборка из генеральной случайной величины
+		\begin{itemize}
+			\item Для задачи регрессии: $\bm{X} \in \mathbb{R}^{n\times p}, \;\;\mathbf{y}\in \mathbb{R}^n$
+		    \item Для задачи классификации: $\bm{X} \in \mathbb{R}^{n\times p}, \;\;\mathbf{y}\in \mathbb{A}^n$
+        \end{itemize}
 		
 	\end{frame}
 	\begin{frame}
-		\frametitle{Обучение с учителем}
-		\begin{block}{Классификация}
-			Sample text
+		\frametitle{Обучение с учителем: формальная постановка}
+		\begin{itemize}
+			\item \textit{Вход}: $\bm{X}$ --- выборка $\bm{\xi}$, $\bm{y}$ --- выборка $\eta$. Предполагаем, что существует неизвестное отображение $y^*: \bm{\xi} \to \eta$  (гипотеза непрерывности или компактности)
+			
+			\item \textit{Задача}: По $\bm{X}$ и $\bm{y}$ найти такое отображение $\hat{y}^*: \bm{\xi} \to \eta$, которое приблизит отображение  $y^*$. 
+			
+			\item \textit{Оценка}: Функция потерь $\mathfrak{L}(y^*(x), \hat{y}^*(x))$. Здесь $x$ --- реализация $\bm{\xi}$
+		\end{itemize}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Классификация}
+		\begin{equation}
+			\bm{X} \in \mathbb{R}^{n\times p}, \;\;\mathbf{y}\in \mathbb{A}^n
+		\end{equation}
+		\begin{block}{Гипотеза компактности}
+			<<Близкие>> объекты, как правило принадлежат одному классу
 		\end{block}
 	\end{frame}
 \end{document}
