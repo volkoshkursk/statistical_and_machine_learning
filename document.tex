@@ -8,6 +8,7 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{bm}
+\usepackage{graphicx}
 % Использовать полужирное начертание для векторов
 \let\vec=\mathbf
 
@@ -61,7 +62,87 @@
 			\bm{X} \in \mathbb{R}^{n\times p}, \;\;\mathbf{y}\in \mathbb{A}^n
 		\end{equation}
 		\begin{block}{Гипотеза компактности}
-			<<Близкие>> объекты, как правило принадлежат одному классу
+			<<Близкие>> объекты, как правило, принадлежат одному классу
 		\end{block}
+		Понятие близости может быть формализовано, например, так:
+		$$\rho(\bm{x_1}, \bm{x_2)} = \left(\displaystyle{\sum_{i = 1}^p w_i|x_1^i - x_2^i|^k}\right)^{{1}\over {k}}$$
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Классификация: генеральная постановка}
+		\textit{Дано:}
+		\begin{itemize}
+			\item $\bm{\xi} \in \mathbb{R}^p$ --- вектор признаков
+			\item $\eta \in \mathbb{A}$ --- классовая принадлежность
+		\end{itemize}
+	
+		Предположение об их зависимсти можно записать в виде \ref{2}.
+		\begin{equation}
+			\eta = \Phi(\bm{\xi}, \varepsilon)
+			\label{2}
+		\end{equation}
+		Обычно на $\varepsilon$ накладываются условия $$E\varepsilon = 0, \;\; D\varepsilon = \sigma^2, \bm{\xi} \perp \varepsilon$$
+		
+		\textit{Задача:} найти $\Phi$
+	\end{frame}
+	\begin{frame}
+		\frametitle{Классификация: выборочная постановка}
+		\textit{Дано:}
+		\begin{itemize}
+			\item $\bm{X} \in \mathbb{R}^{n\times p}$ --- матрица признаков
+			\item $\bm{y} \in \mathbb{A}^n$ --- вектор классовой принадлежности
+		\end{itemize}
+		
+		Предположение имеет вид \ref{3}.
+		\begin{equation}
+			y_i = \Phi(\bm{x}_i, \varepsilon_i),\;\;\; i = 1, \ldots, n
+			\label{3}
+		\end{equation}
+		
+		\textit{Задача:} найти $\Phi$
+	\end{frame}
+	\begin{frame}
+		\frametitle{Классификация: оценка качества}
+		\begin{figure}
+			\includegraphics[width=0.3\linewidth]{imgs/conf_matrix}
+		\end{figure}
+	    На основе этой матрицы есть большое количество разных метрик: \textit{accuracy}, \textit{recall}, \textit{precision}, $F_\beta$, \textit{ROC--AUC}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Классификация: типы классов}
+		\begin{itemize}
+			\item По количеству классов:
+			\begin{itemize}
+				\item бинарная классификация
+				\item многоклассовая классификация
+			\end{itemize}
+			\item По пересечению классов 
+			\begin{itemize}
+				\item пересекающиеся
+				\item непересекающаяся
+				\item нечёткие
+			\end{itemize}
+		\end{itemize}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Классификация: этапы обучения модели}
+		\begin{itemize}
+			\item Выбор модели (класс рассматриваемых $\Phi$ из \ref{3})
+			\item Выбор метрики
+			\item Выбор метода обучения (способ подбора параметров для минимизации метрики на обучающем множестве)
+			\item Выбор метода проверки (способ оценки качества модели)
+		\end{itemize}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Классификация: задача оптимизации}
+		\begin{itemize}
+			\item $\hat{\beta}$ --- параметры модели
+			\item $\bm{\Phi}(\bm{x}, \beta)$ --- функционал классификации
+			\item $\mathfrak{L}(\bm{\Phi}(\bm{x}, \beta), \bm{y})$ --- функция потерь (метрика)
+		\end{itemize}
+		\begin{block}{}
+			$$\hat{\beta} = \arg\min_{\beta} \mathfrak{L}(\bm{\Phi}(\bm{x}, \beta), \bm{y})$$
+		\end{block}
+
 	\end{frame}
 \end{document}
