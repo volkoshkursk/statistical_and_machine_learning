@@ -201,4 +201,40 @@
 		$$g_i(\bm{x}) = -0.5 (\bm{x} - \bm{\mu}_i)\bm{\Sigma}^{-1}(\bm{x} - \bm{\mu}_i)^\mathtt{T} - 0.5\log|\bm{\Sigma}_i| + \log\pi_i$$
 		
 	\end{frame}
+
+	\begin{frame}
+	\frametitle{Лог. регрессия}
+			Зададим модель логистической регрессии следующим образом:
+			% $$\bm{X} \in \mathbb{R}^{n\times p}, \;\;\mathbf{y}\in \mathbb{A}^n,$$
+			$$\log \dfrac{P(\eta = G_i | \bm{\xi} = \bm{x})}{P(\eta = G_K | \bm{\xi} = \bm{x})} = \beta_{i0} + \bm{\beta}_{i}^T \bm{x}, i = 1, \cdots, K-1.$$
+		
+	\end{frame}
+	\begin{frame}
+		\frametitle{Лог. регрессия}
+			Перейдем от логитов к вероятностям:
+			
+			$$P(\eta = G_i | \bm{\xi} = \bm{x})\ = \dfrac{e^{\beta_{i0} + \bm{\beta}_{i}^T \bm{x}} }{1 + \sum_{k = 1}^{K-1} e^{\beta_{k0} + \bm{\beta}_{k}^T \bm{x}}} , i = 1, \cdots, K-1 ,$$
+			$$P(\eta = G_K | \bm{\xi} = \bm{x}) = \dfrac{1}{1 + \sum_{k = 1}^{K-1} e^{\beta_{k0} + \bm{\beta}_{k}^T \bm{x}}}.$$
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Лог. регрессия: метод максимального правдоподобия}
+		
+		Для оценки параметров воспользуемся методом максимального правдоподобия:
+		
+			$$ l(\theta) = \sum\limits_{i=1}^{N} \log P(\eta = G_k | \bm{\xi} = \bm{x}; \theta ), $$
+			$$ \theta = (\beta_{10}, \beta^T_1, \dotsc, \beta_{(K-1)0}, \beta^T_{K-1}). $$
+		
+		
+		 Iteratively reweighted least squares (IRLS).
+		
+	\end{frame}
+
+	\begin{frame}
+	\frametitle{Лог. регрессия}
+	
+		Функция потерь.
+		$$ L(M_i(\beta)) = \log(1 + e^{-y_i \beta^T x_i}) $$
+		
+	\end{frame}
 \end{document}
