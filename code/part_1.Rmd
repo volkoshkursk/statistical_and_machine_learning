@@ -1,0 +1,661 @@
+---
+title: '6'
+author: Ivan Kononykhin
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE, message=FALSE}
+library(dplyr)
+library(MASS)
+library(candisc)
+library(klaR)
+library(FSA)
+library(ROCR)
+
+library("PerformanceAnalytics")
+library("FactoMineR") 
+library("factoextra")
+```
+
+
+## Подготовка данных
+
+Возьмем набор данных [Wine quality dataset](https://archive.ics.uci.edu/ml/datasets/wine+quality).
+
+Этот набор данных включает данные о физико-химическом составе красных вин.
+
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+df_raw <- read.csv("winequality-white.csv", sep = ";")
+head(df_raw)
+```
+
+
+Признаки:  
+
+* `fixed.acidity` - фиксированная кислотность.
+* `volatile.acidity`- летучая кислотность.
+* `citric.acid` - лимонная кислота.
+* `residual.sugar` - остаточный сахар.
+* `chlorides` - хлориды.
+* `free.sulfur.dioxide` - свободный диоксид серы.
+* `total.sulfur.dioxide` - общий диоксид серы.
+* `density` - плотность.
+* `pH` - pH.
+* `sulphates` - сульфаты.
+* `alcohol` - алкоголь.
+* `quality` - качество.
+  
+
+Количество индивидов:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+length(df_raw[, 1])
+```
+
+Посмотрим на количество классов.
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+count(df_raw, quality)
+```
+
+И на их соотношение:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+perc_class <- count(df_raw, quality)
+perc_class$n <- count(df_raw, quality)$n / sum(count(df_raw, quality)$n)
+perc_class
+```
+
+Обозначим классы `qualuity`: 
+
+* $5$ - `1` ("ниже среднего")
+* $6$ - `2` ("выше среднего")
+* $7$ - `3` ("отличные")
+
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+df <- df_raw %>% filter(quality > 4, quality < 8)
+df_low <- df_raw %>% filter(quality < 5)
+df_low$quality <- 5
+df_high <- df_raw %>% filter(quality > 7)
+df_high$quality <- 7
+df <- rbind(df, df_low, df_high)
+df$quality <- cut(df$quality, 3, labels=c('1', '2', '3'))
+```
+
+
+## Проверка признаков
+
+Посмотрим, есть ли признаки, которые стоит логарифмировать.
+
+```{r, fig.height=6, fig.width=10}
+chart.Correlation(subset(df, select=-c(quality)), histogram=TRUE)
+```
+
+
+Прологарифмируем `residual.sugar`, `volatile.acidity`, `citric.acid`, `chlorides`, `free.sulfur.dioxide`, `sulphates`, `density`.
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+df_l <- df
+
+df_l <- transform(df_l, residual.sugar=log(residual.sugar))
+df_l <- transform(df_l, chlorides=log(chlorides))
+df_l <- transform(df_l, citric.acid=log(citric.acid))
+df_l <- transform(df_l, volatile.acidity=log(volatile.acidity))
+df_l <- transform(df_l, free.sulfur.dioxide=log(free.sulfur.dioxide))
+df_l <- transform(df_l, sulphates=log(sulphates))
+df_l <- transform(df_l, density=log(density))
+
+chart.Correlation(subset(df_l, select=-c(quality)), histogram=TRUE)
+```
+
+Есть 19 индивидов, у которых `citric.acid` был равен нулю. Удалим эти индивиды.
+
+```{r}
+df_l <- df_l %>% filter(!is.infinite(citric.acid))
+```
+
+
+## Train Test split
+
+Разобьем выборку на $train$ и $test$.
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+smp_size <- floor(0.75 * nrow(df))
+
+set.seed(123)
+train_ind <- sample(seq_len(nrow(df_l)), size = smp_size)
+
+train <- df_l[train_ind, ]
+test <- df_l[-train_ind, ]
+
+rownames(train) = 1:length(train[, 1])
+rownames(test) = 1:length(test[, 3])
+```
+
+Посмотрим на баланс классов в $train$ и $test$.
+```{r, fig.height=8, fig.width=8}
+count(train, quality)
+count(test, quality)
+```
+
+
+И на их процентное соотношение:  
+
+* На `train`:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+perc_class <- count(train, quality)
+perc_class$n <- count(train, quality)$n / sum(count(train, quality)$n)
+perc_class
+```
+
+
+* На `test`: 
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+perc_class <- count(test, quality)
+perc_class$n <- count(test, quality)$n / sum(count(test, quality)$n)
+perc_class
+```
+
+
+<!-- ## PCA -->
+
+<!-- ```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10} -->
+<!-- train.active = train[, 1:11] -->
+<!-- res <- PCA(train.active) -->
+<!-- ``` -->
+
+<!-- ```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10} -->
+<!-- res$eig -->
+<!-- ``` -->
+
+
+<!-- ```{r, warning=FALSE, message=FALSE, fig.height=4, fig.width=8} -->
+<!-- fviz_eig(res, addlabels = TRUE, ylim = c(0, 40)) -->
+<!-- ``` -->
+
+<!-- ```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10} -->
+<!-- res$svd$V -->
+<!-- ``` -->
+
+<!-- ```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10} -->
+<!-- get_pca_var(res)$coord -->
+<!-- ``` -->
+
+
+<!-- ```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=8} -->
+<!-- fviz_pca_var(res) -->
+<!-- ``` -->
+
+
+<!-- ```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=8} -->
+<!-- fviz_pca_biplot(res, geom.ind = "text", col.ind = train$quality,  -->
+<!--                 gradient.cols = c("red", "blue"), addEllipses = TRUE,  -->
+<!--                 col.var = "black", legend.title = "Results") -->
+<!-- ``` -->
+
+<!-- Удалим аутлаеры -->
+
+<!-- ```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10} -->
+<!-- train <- train[-c(253, 1019, 385, 465, 151, 887, 879),] -->
+<!-- rownames(train) <- 1:length(train[, 1]) -->
+<!-- ``` -->
+
+
+
+## MANOVA
+
+Проверим гипотезу о равенстве мат. ожиданий среди групп `quality`.
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+train.manova <- manova(cbind(fixed.acidity, volatile.acidity, citric.acid, residual.sugar, chlorides, free.sulfur.dioxide, total.sulfur.dioxide, density, pH, sulphates, alcohol) ~ quality, data = train)
+
+summary(train.manova, 'Wilks')
+summary(train.manova, 'Roy')
+```
+
+Однако перед тем, как интерпретировать результаты критериев, посмотрим еще раз на распределение прологарифмированных данных. Попробуем понять хотя бы приблизительно, равны ли ковариационные матрицы среди групп `quality`.
+
+```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=8}
+ggplot(df_l) + 
+  geom_point(aes(x = pH, y = alcohol, group = quality, color = quality)) + 
+  stat_ellipse(aes(x = pH, y = alcohol, group = quality, color = quality)) + 
+  scale_color_manual(values = c("red", "purple", "black"))
+```
+
+
+```{r, warning=FALSE, message=FALSE, fig.height=5, fig.width=8}
+ggplot(df_l) + 
+  geom_point(aes(x = fixed.acidity, y = volatile.acidity, group = quality, color = quality)) + 
+  stat_ellipse(aes(x = fixed.acidity, y = volatile.acidity, group = quality, color = quality)) + 
+  scale_color_manual(values = c("red", "purple", "black"))
+```
+
+По формам эллипсов можно уже заметить, что ковариационные матрицы различны, откуда следует тот факт, что на критерии Wilk’s Lambda или Roy’s greatest root нельзя полагаться.  
+
+  
+Более того, из определения модели $LDA$ плотность в точке $x$: $p_i(x) = p(x|\xi = A_i) = \frac{1}{2\pi^{p/2}|\Sigma|^{1/2}}exp(-\frac{1}{2}(x-\mu_i)^\mathrm{T}\Sigma^{-1}(x-\mu_i))$ и классифицирующие функции $f_i(x) = \pi_ip(x|\xi = A_i)$ предполагают равенство ковариационных матриц между классами. Хотя мы и проверяем "на глаз", скорее всего нам больше подойдет $QDA$, нежели $LDA$.
+
+
+## LDA + error tables
+
+Обучим модель на `train` и на нём же протестируем. 
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+full.lda <- lda(x=train[, 1:11], grouping = train[, 12])
+full.ldap <- predict(full.lda, train[, 1:11])
+full.ldapc <- full.ldap$class
+ct <- table(full.ldapc, train[, 12])
+
+ct
+```
+
+Точность модели по классам:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+diag(prop.table(ct, 2))
+```
+
+Попробуем задать априорные вероятности $\pi_i$ равными, а не на основе соотношения количества элементов в выборке.
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+full.lda <- lda(x=train[, 1:11], grouping = train[, 12], prior = c(1, 1, 1)/3)
+full.ldap <- predict(full.lda, train[, 1:11])
+full.ldapc <- full.ldap$class
+ct <- table(full.ldapc, train[, 12])
+
+ct
+```
+
+Точность (accuracy) модели по классам:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+diag(prop.table(ct, 2))
+```
+
+Видим что точность для $1$го и $3$го класса сильно возрасла, в то время как для $2$го класса упала.
+
+
+Посмотрим на результаты при обучении на `train` и проверке на `test`.
+
+Обучим модель:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+train.lda <- lda(train[, 1:11], train[, 12], prior = c(1, 1, 1)/3)
+train.ldap <- predict(train.lda, test[, 1:11])
+train.ldapc <- train.ldap$class
+ct <- table(train.ldapc, test[,12])
+
+ct
+```
+
+Точность модели по классам:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+diag(prop.table(ct, 2))
+```
+
+
+Построим модель используя кросс-валидацию:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+cv.lda <- lda(df_l[, 1:11], df_l[, 12], CV = TRUE, prior = c(1, 1, 1)/3)
+cv.ldac <- cv.lda$class
+ct <- table(cv.ldac, df_l[,12])
+ct
+```
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+diag(prop.table(ct, 2))
+```
+
+
+## Canonical Analysis
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+result.candisc <- candisc(train.manova)
+
+ggplot(result.candisc$scores) + 
+  geom_point(aes(x = Can1, y = Can2, color = quality)) +
+  stat_ellipse(aes(x = Can1, y = Can2, color = quality)) +
+  geom_segment(as.data.frame(result.candisc$structure), 
+               mapping = aes(x = 0, y = 0, xend = 6.5 * Can1, yend = 6.5 * Can2), 
+               arrow = arrow(angle = 10, type = "closed"), size = 0.5)
+```
+
+Изображение разделяющих плоскостей в разных проекциях
+
+```{r, fig.height=40, fig.width=40}
+plot(partimat(quality ~ ., train, method="lda"), xlim = c(-10, 10),
+     ylim = c(-10, 10));
+```
+
+Можно заметить, что в большинстве графиков один из классов (фиолетовый) отделяется от остальных, мягко говоря, плохо. К тому же, индивиды сильно перемешаны.
+
+
+## ROC-AUC
+
+Посмотрим на графики $ROG$ попарно для каждых комбинаций $2$х классов.
+
+Сначала возьмем класс $1$ и $2$.
+
+```{r, warning=FALSE, message=FALSE, fig.height=4, fig.width=8}
+# Подготовка данных
+two.df = Subset(df_l, quality != 3)
+two.lda <- lda(two.df[, 1:11], grouping = two.df[, 12], prior=c(1,1)/2)
+two.ldap <- predict(two.lda, two.df[, 1:11])
+
+# Переводит данные в стандартизированный формат. Первый параметр - предсказания, второй - настоящая классификация.
+preds <- prediction(two.ldap$posterior[,2], two.df[, 12])
+
+# Строим ROC-кривую и рисуем ее
+perf <- performance(preds, "tpr", "fpr")
+plot(perf, colorize = TRUE)
+
+#Считаем AUC
+AUC.ROCR <- performance(preds, "auc")
+
+# Добавляем прямую
+abline(a = 0, b = 1)
+
+# Добавляем значение AUC на график
+text(x = .25, y = .65, paste("AUC = ", round(AUC.ROCR@y.values[[1]],5)))
+```
+
+
+<!-- Аналогично делаем для кросс-валидации. -->
+
+<!-- ```{r} -->
+<!-- two.cv.lda <- lda(two.df[, 1:11], two.df[, 12], CV = T, prior=c(1,1)/2) -->
+<!-- predcv <- prediction(two.cv.lda$posterior[,2], two.df[, 12]) -->
+<!-- perfcv <- performance(predcv, "tpr", "fpr") -->
+<!-- plot(perfcv, colorize = TRUE) -->
+<!-- AUCcv <- performance(predcv, "auc") -->
+<!-- abline(a = 0, b = 1) -->
+<!-- text(x = .25, y = .65, paste("AUC = ", round(AUCcv@y.values[[1]],5))) -->
+<!-- ``` -->
+
+
+Теперь возьмем класс $2$ и $3$.
+
+```{r, warning=FALSE, message=FALSE, fig.height=4, fig.width=8}
+# Подготовка данных
+two.df = Subset(df_l, quality != 1)
+two.lda <- lda(two.df[, 1:11], grouping = two.df[, 12], prior=c(1,1)/2)
+two.ldap <- predict(two.lda, two.df[, 1:11])
+
+# Переводит данные в стандартизированный формат. Первый параметр - предсказания, второй - настоящая классификация.
+preds <- prediction(two.ldap$posterior[,2], two.df[, 12])
+
+# Строим ROC-кривую и рисуем ее
+perf <- performance(preds, "tpr", "fpr")
+plot(perf, colorize = TRUE)
+
+#Считаем AUC
+AUC.ROCR <- performance(preds, "auc")
+
+# Добавляем прямую
+abline(a = 0, b = 1)
+
+# Добавляем значение AUC на график
+text(x = .25, y = .65, paste("AUC = ", round(AUC.ROCR@y.values[[1]],5)))
+```
+
+
+<!-- Аналогично делаем для кросс-валидации. -->
+
+<!-- ```{r} -->
+<!-- two.cv.lda <- lda(two.df[, 1:11], two.df[, 12], CV = T, prior=c(1,1)/2) -->
+<!-- predcv <- prediction(two.cv.lda$posterior[,2], two.df[, 12]) -->
+<!-- perfcv <- performance(predcv, "tpr", "fpr") -->
+<!-- plot(perfcv, colorize = TRUE) -->
+<!-- AUCcv <- performance(predcv, "auc") -->
+<!-- abline(a = 0, b = 1) -->
+<!-- text(x = .25, y = .65, paste("AUC = ", round(AUCcv@y.values[[1]],5))) -->
+<!-- ``` -->
+
+
+И последняя пара - классы $1$ и $3$.
+
+```{r, warning=FALSE, message=FALSE, fig.height=4, fig.width=8}
+# Подготовка данных
+two.df = Subset(df_l, quality != 2)
+two.lda <- lda(two.df[, 1:11], grouping = two.df[, 12], prior=c(1,1)/2)
+two.ldap <- predict(two.lda, two.df[, 1:11])
+
+# Переводит данные в стандартизированный формат. Первый параметр - предсказания, второй - настоящая классификация.
+preds <- prediction(two.ldap$posterior[,2], two.df[, 12])
+
+# Строим ROC-кривую и рисуем ее
+perf <- performance(preds, "tpr", "fpr")
+plot(perf, colorize = TRUE)
+
+#Считаем AUC
+AUC.ROCR <- performance(preds, "auc")
+
+# Добавляем прямую
+abline(a = 0, b = 1)
+
+# Добавляем значение AUC на график
+text(x = .25, y = .65, paste("AUC = ", round(AUC.ROCR@y.values[[1]],5)))
+```
+
+
+<!-- Аналогично делаем для кросс-валидации. -->
+
+<!-- ```{r} -->
+<!-- two.cv.lda <- lda(two.df[, 1:11], two.df[, 12], CV = T, prior=c(1,1)/2) -->
+<!-- predcv <- prediction(two.cv.lda$posterior[,2], two.df[, 12]) -->
+<!-- perfcv <- performance(predcv, "tpr", "fpr") -->
+<!-- plot(perfcv, colorize = TRUE) -->
+<!-- AUCcv <- performance(predcv, "auc") -->
+<!-- abline(a = 0, b = 1) -->
+<!-- text(x = .25, y = .65, paste("AUC = ", round(AUCcv@y.values[[1]],5))) -->
+<!-- ``` -->
+
+Как мы видили на графиках в разделах ранее, классы $1$ и $3$ являлись самыми разделимыми, что мы и наблюдаем на $ROC-AUC$.  
+
+Но в целом, модель плохо справляется с поставленной задачей.
+
+
+## QDA
+
+Попробуем взять модель $QDA$.
+
+Обучим ее:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+full.qda <- qda(x=train[, 1:11], grouping = train[, 12])
+full.qdap <- predict(full.qda, train[, 1:11])
+full.qdapc <- full.qdap$class
+ct <- table(full.qdapc, train[, 12])
+
+ct
+```
+
+Точность модели по классам:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+diag(prop.table(ct, 2))
+```
+
+Изначально точность $3$го класса получилась выше по сравнению с $LDA$.
+
+Попробуем задать равные априорные вероятности $\pi_i$.
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+full.qda <- qda(x=df_l[, 1:11], grouping = df_l[, 12], prior = c(1, 1, 1)/3)
+full.qdap <- predict(full.qda, df_l[, 1:11])
+full.qdapc <- full.qdap$class
+ct <- table(full.qdapc, df_l[, 12])
+
+ct
+```
+
+Точность модели по классам:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+diag(prop.table(ct, 2))
+```
+
+Видим что точность для $3$го класса сильно возрасла, в то время как для $2$го класса упала.
+
+
+Посмотрим на результаты при обучении на `train` и проверке на `test`.
+
+Обучим модель:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+train.qda <- qda(train[, 1:11], train[, 12], prior = c(1, 1, 1)/3)
+train.qdap <- predict(train.qda, test[, 1:11])
+train.qdapc <- train.qdap$class
+ct <- table(train.qdapc, test[,12])
+
+ct
+```
+
+Точность модели по классам:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+diag(prop.table(ct, 2))
+```
+
+Из-за маленького объема выборки, результаты не особо вселяют уверенность.
+
+Построим модель и протестируем ее используя кросс-валидацию:
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+cv.qda <- qda(df_l[, 1:11], df_l[, 12], CV = TRUE, prior = c(1, 1, 1)/3)
+cv.qdac <- cv.qda$class
+ct <- table(cv.qdac, df_l[,12])
+ct
+```
+
+```{r, warning=FALSE, message=FALSE, fig.height=6, fig.width=10}
+diag(prop.table(ct, 2))
+```
+
+Точность модели для $2$го класса оставляет желать лучшего.
+
+```{r, fig.height=30, fig.width=30}
+plot(partimat(quality ~ ., df_l, method="qda"), xlim = c(-5, 5), ylim = c(-5, 5))
+```
+
+На практике получили точность у $QDA$ слегка хуже, чем у $LDA$, однако из-за того, что облака точек находятся близко друг к другу, ни одна из этих моделей не может более-менее точно классифицировать качество вин.
+
+## ROC-AUC QDA
+
+Посмотрим на графики $ROG$ попарно для каждых комбинаций $2$х классов. Будем смотреть сразу для модели с кросс-валидацией.
+
+Сначала возьмем класс $1$ и $2$.
+
+```{r}
+# Подготовка данных
+two.df = Subset(df_l, quality != 3)
+two.qda <- qda(two.df[, 1:11], grouping = two.df[, 12], prior=c(1,1)/2)
+two.qdap <- predict(two.qda, two.df[, 1:11])
+
+# Переводит данные в стандартизированный формат. Первый параметр - предсказания, второй - настоящая классификация.
+preds <- prediction(two.qdap$posterior[,2], two.df[, 12])
+
+# Строим ROC-кривую и рисуем ее
+perf <- performance(preds, "tpr", "fpr")
+plot(perf, colorize = TRUE)
+
+#Считаем AUC
+AUC.ROCR <- performance(preds, "auc")
+
+# Добавляем прямую
+abline(a = 0, b = 1)
+
+# Добавляем значение AUC на график
+text(x = .25, y = .65, paste("AUC = ", round(AUC.ROCR@y.values[[1]],5)))
+
+
+# two.df = Subset(df_l, quality != 3)
+# two.cv.qda <- qda(two.df[, 1:11], two.df[, 12], CV = T, prior=c(1,1)/2)
+# predcv <- prediction(two.cv.qda$posterior[,2], two.df[, 12])
+# perfcv <- performance(predcv, "tpr", "fpr")
+# plot(perfcv, colorize = TRUE)
+# AUCcv <- performance(predcv, "auc")
+# abline(a = 0, b = 1)
+# text(x = .25, y = .65, paste("AUC = ", round(AUCcv@y.values[[1]],5)))
+```
+
+
+Теперь возьмем класс $2$ и $3$.
+
+```{r}
+# Подготовка данных
+two.df = Subset(df_l, quality != 1)
+two.qda <- qda(two.df[, 1:11], grouping = two.df[, 12], prior=c(1,1)/2)
+two.qdap <- predict(two.qda, two.df[, 1:11])
+
+# Переводит данные в стандартизированный формат. Первый параметр - предсказания, второй - настоящая классификация.
+preds <- prediction(two.qdap$posterior[,2], two.df[, 12])
+
+# Строим ROC-кривую и рисуем ее
+perf <- performance(preds, "tpr", "fpr")
+plot(perf, colorize = TRUE)
+
+#Считаем AUC
+AUC.ROCR <- performance(preds, "auc")
+
+# Добавляем прямую
+abline(a = 0, b = 1)
+
+# Добавляем значение AUC на график
+text(x = .25, y = .65, paste("AUC = ", round(AUC.ROCR@y.values[[1]],5)))
+# two.df = Subset(df_l, quality != 1)
+# two.cv.qda <- qda(two.df[, 1:11], two.df[, 12], CV = T, prior=c(1,1)/2)
+# predcv <- prediction(two.cv.qda$posterior[,2], two.df[, 12])
+# perfcv <- performance(predcv, "tpr", "fpr")
+# plot(perfcv, colorize = TRUE)
+# AUCcv <- performance(predcv, "auc")
+# abline(a = 0, b = 1)
+# text(x = .25, y = .65, paste("AUC = ", round(AUCcv@y.values[[1]],5)))
+```
+
+И последняя пара - классы $1$ и $3$.
+
+```{r}
+# Подготовка данных
+two.df = Subset(df_l, quality != 2)
+two.qda <- qda(two.df[, 1:11], grouping = two.df[, 12], prior=c(1,1)/2)
+two.qdap <- predict(two.qda, two.df[, 1:11])
+
+# Переводит данные в стандартизированный формат. Первый параметр - предсказания, второй - настоящая классификация.
+preds <- prediction(two.qdap$posterior[,2], two.df[, 12])
+
+# Строим ROC-кривую и рисуем ее
+perf <- performance(preds, "tpr", "fpr")
+plot(perf, colorize = TRUE)
+
+#Считаем AUC
+AUC.ROCR <- performance(preds, "auc")
+
+# Добавляем прямую
+abline(a = 0, b = 1)
+
+# Добавляем значение AUC на график
+text(x = .25, y = .65, paste("AUC = ", round(AUC.ROCR@y.values[[1]],5)))
+# two.df = Subset(df_l, quality != 2)
+# two.cv.qda <- qda(two.df[, 1:11], two.df[, 12], CV = T, prior=c(1,1)/2)
+# predcv <- prediction(two.cv.qda$posterior[,2], two.df[, 12])
+# perfcv <- performance(predcv, "tpr", "fpr")
+# plot(perfcv, colorize = TRUE)
+# AUCcv <- performance(predcv, "auc")
+# abline(a = 0, b = 1)
+# text(x = .25, y = .65, paste("AUC = ", round(AUCcv@y.values[[1]],5)))
+```
+
