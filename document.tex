@@ -201,4 +201,135 @@
 		$$g_i(\bm{x}) = -0.5 (\bm{x} - \bm{\mu}_i)\bm{\Sigma}^{-1}(\bm{x} - \bm{\mu}_i)^\mathtt{T} - 0.5\log|\bm{\Sigma}_i| + \log\pi_i$$
 		
 	\end{frame}
+
+
+
+	\begin{frame}
+		\frametitle{Место Феди}
+		
+	\end{frame}
+
+
+
+	\begin{frame}
+		\frametitle{Кросс-валидация}
+		Кросс-валидация (aka перекрестная проверка, скользящий контроль) --- процедура эмпирического оценивания обобщающей способности алгоритмов. 
+		
+		С помощью кросс-валидации "эмулируется" наличие тестовой выборки, которая не участвует в обучении модели, но для которой известны правильные ответы.
+		
+	\end{frame}
+	\begin{frame}
+		\frametitle{Кросс-валидация: виды}
+		\begin{itemize}
+			\item Валидация на отложенных данных (Hold-Out Validation);
+			\item Полная кросс-валидация (Complete Cross-Validation);
+			\item k-fold Cross-Validation;
+			\item t$\times$k-fold Cross Validation;
+			\item Кросс-валидация по отдельным объектам (Leave-One-Out);
+			\item Случайные разбиения (Random Subsampling).
+		\end{itemize}
+		
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Кросс-валидация: Обозначения}
+		Введем обозначения:
+		\begin{itemize}
+			\item $\bm{X}$ --- матрица признаков, описывающие таргеты $\bm{y}$;
+			\item $\bm{T}^l = (x_i, y_i)_{i=1}^l, x_i \in \bm{X}, y_i \in \bm{y}$ --- обучающая выборка;
+			\item $\mathfrak{L}$ --- функция потерь (мера качества);
+			\item $A$ --- исследуемая модель;
+			\item $\mu : (\bm{X}\times\bm{y})\rightarrow A$ --- алгоритм обучения.
+		\end{itemize}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Кросс-валидация: Hold-Out Validation}
+		Обучающая выборка один раз случайным образом разбивается на две части $\bm{T} = \bm{T}^t \cup \bm{T}^{l-t}$.
+		\begin{figure}
+			\includegraphics[width=1\linewidth]{imgs/hold-out}
+		\end{figure}
+		После чего решается задача оптимизации:
+		$HO(\mu, \bm{T}^t, \bm{T}^{l-t}) = \mathfrak{L}(\mu(\bm{T}^t), \bm{T}^{l-t}) \rightarrow min$.
+		
+		
+		Метод Hold-out применяется в случаях больших датасетов, т.к. требует меньше вычислительных мощностей по сравнению с другими методами кросс-валидации. 
+		
+		Недостатком метода является то, что оценка существенно зависит от разбиения, тогда как желательно, чтобы она характеризовала только алгоритм обучения.
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Кросс-валидация: Complite cross-validation}
+		\begin{itemize}
+			\item Выбирается значение $t$;
+			\item Выборка разбивается всевозможными способами на две части $\bm{T} = \bm{T}^t \cup \bm{T}^{l-t}$.
+		\end{itemize}
+		\begin{figure}
+			\includegraphics[width=1\linewidth]{imgs/completecrossvalidation}
+		\end{figure}
+		После чего решается задача оптимизации:
+		$CVV_t = \frac{1}{C_l^{l-t}}\sum_{\bm{T}^l = \bm{T}^t \cup \bm{T}^{l-t}} \mathfrak{L}(\mu(\bm{T}^t), \bm{T}^{l-t}) \rightarrow min$.
+		
+		
+		Здесь число разбиений $ C_l^{l-t} $ становится слишком большим даже при сравнительно малых значениях $ t $, что затрудняет практическое применение данного метода.
+	\end{frame}
+
+    \begin{frame}
+		\frametitle{Кросс-валидация: k-fold Cross-Validation}
+		\begin{itemize}
+			\item $\bm{T}^l$ разбивается на $ \bm{F_1}\cup\cdots\cup\bm{F_k}, |\bm{F_i}|\approx \frac{1}{k} $ частей;
+			\item Производится $ k $ итераций:
+			\begin{itemize}
+				\item Модель обучается на $ k-1 $ части обучающей выборки;
+				\item Модель тестируется на части обучающей выборки, которая не участвовала в обучении.
+			\end{itemize}
+		\end{itemize}
+		Каждая из $ k $ частей единожды используется для тестирования.
+		
+		\begin{figure}
+			\includegraphics[width=0.4\linewidth]{imgs/K-fold-validation}
+		\end{figure}
+		После чего решается задача оптимизации:
+		$CV_k = \frac{1}{k}\sum_{i=1}^k\mathfrak{L}(\mu(\bm{T}^l \setminus \bm{F}_i), \bm{F}_i) \rightarrow min$.
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Кросс-валидация: t$\times$k-fold Cross Validation}
+		\begin{center}
+			\textit{Как k-fold Cross-Validation, только $t$ раз.}
+		\end{center}
+		
+		Разбиение:
+		$\bm{T}^l = \bm{F}_{(1,1)}\cup\cdots\cup\bm{F}_{(k,1)}=\bm{F}_{(1,t)}\cup\cdots\cup\bm{F}_{(k,t)},|\bm{F}_{(i,j)}|\approx \frac{l}{k} $, 
+		 
+		Задача оптимизации: 
+		$CV_{t\times k} = \frac{1}{tk}\sum_{j=1}^t\sum_{i=1}^k\mathfrak{L}(\mu(\bm{T}^l \setminus \bm{F}_{i,j}), \bm{F}_{i,j}) \rightarrow min$
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Кросс-валидация: Leave-One-Out}
+		Выборка разбивается на $ l-1 $ и $ 1 $ объект $ l $ раз.
+		\begin{figure}
+			\includegraphics[width=1\linewidth]{imgs/LeaveOneOut}
+		\end{figure}
+		$LOO = \frac{1}{l}\sum_{i=1}^l\mathfrak{L}(\mu(\bm{T}^l \setminus p_i), p_i) \rightarrow min$, где $ p_i = (x_i, y_i) $.
+		
+		Преимущества LOO в том, что каждый объект ровно один раз участвует в контроле, а длина обучающих подвыборок лишь на единицу меньше длины полной выборки.
+		
+		Недостатком LOO является большая ресурсоёмкость, так как обучаться приходится $ L $ раз.
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Кросс-валидация: Random subsampling (Monte-Carlo cross-validation)}
+		Выборка разбивается в случайной пропорции. Процедура повторяется несколько раз.
+		\begin{figure}
+			\includegraphics[width=1\linewidth]{imgs/completecrossvalidation}
+		\end{figure}
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{Кросс-валидация: Выбор лучшей модели}
+		Не переобученый алгоритм должен показывать одинаковую эффективность на каждой части.
+	\end{frame}
+
+		
 \end{document}
