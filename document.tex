@@ -65,7 +65,7 @@
 			<<Близкие>> объекты, как правило, принадлежат одному классу
 		\end{block}
 		Понятие близости может быть формализовано, например, так:
-		$$\rho(\bm{x_1}, \bm{x_2)} = \left(\displaystyle{\sum_{i = 1}^p w_i|x_1^i - x_2^i|^k}\right)^{{1}\over {k}}$$
+		$$\rho(\bm{x_1}, \bm{x_2}) = \left(\displaystyle{\sum_{i = 1}^p w_i|x_1^i - x_2^i|^k}\right)^{{1}\over {k}}$$
 	\end{frame}
 
 	\begin{frame}
@@ -143,6 +143,62 @@
 		\begin{block}{}
 			$$\hat{\beta} = \arg\min_{\beta} \mathfrak{L}(\bm{\Phi}(\bm{x}, \beta), \bm{y})$$
 		\end{block}
+	
+	\end{frame}
+	\begin{frame}
+		\frametitle{Классификация: общий подход к решению}
+		Как построить функционал $\Phi$?
+		
+		
+		Общий подход --- построить набор $f_i$, $i = 1, \ldots, K$. Каждая функция $f_i(\bm{x})$ показывает меру принадлежности $\bm{x}$ классу $i$. 
+		
+		Таким образом,
+		\begin{equation}
+			\Phi(\bm{x}) = \arg\max_i(f_i(\bm{x})).
+			\label{4}
+		\end{equation}
+	\end{frame}
+	\begin{frame}
+		\frametitle{Дискриминантный анализ}
+		Примем за функции $f_i$ из \ref{4} оценку вероятности принадлежности к $i$-му классу.
+		
+		$$\Phi(\bm{x}) = \arg\max_i (P(C_i|\bm{x})).$$
+		
+		$C_i$ ---  класс, состоящий из одного события: $\bm{x}$ принадлежит $i$-му классу.
+	\end{frame}
+	\begin{frame}
+		\frametitle{Дискриминантный анализ}
+		Если известны априорные вероятности получения $i$-го класса ($\pi_i$), применим формулу Байеса
+		
+		$$P(C_i|\bm{x}) = {{\pi_i P(\bm{x}|C_i)}\over{\sum_{j=1}^{K} \pi_j P(\bm{x}|C_j)}}.$$
+		 
+		 Отбросим знаменатель
+		
+		$$f_i = P(C_i|\bm{x}) = \pi_i P(\bm{x}|C_i).$$
+	\end{frame}
+	\begin{frame}
+		\frametitle{LDA}
+		\textit{Предположение:}	
+		$$\mathtt{P}(\bm{\xi}|\eta = A_i) = \mathtt{N}(\bm{\mu}_i, \bm{\Sigma})$$
+		
+		\textit{Классифицирующая функция:}
+		$$f_i(\bm{x}) = {{\pi_i}\over{(2\pi)^{p/2}|\bm{\Sigma}|^{1/2}}}exp\left(-{{1}\over{2}}(\bm{x} - \bm{\mu}_i)\bm{\Sigma}^{-1}(\bm{x} - \bm{\mu}_i)^\mathtt{T}\right)$$
+		
+		\textit{После упрощения:}
+		$$h_i(\bm{x}) = -0.5 \bm{\mu}_i\bm{\Sigma}^{-1}\bm{\mu}_i^\mathtt{T} + \bm{\mu}_i\bm{\Sigma}^{-1}\bm{x} + \log\pi_i$$
 
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{QDA}
+		\textit{Предположение:}	
+		$$\mathtt{P}(\bm{\xi}|\eta = A_i) = \mathtt{N}(\bm{\mu}_i, \bm{\Sigma}_i)$$
+		
+		\textit{Классифицирующая функция:}
+		$$f_i(\bm{x}) = {{\pi_i}\over{(2\pi)^{p/2}|\bm{\Sigma}_i|^{1/2}}}exp\left(-{{1}\over{2}}(\bm{x} - \bm{\mu}_i)\bm{\Sigma}_i^{-1}(\bm{x} - \bm{\mu}_i)^\mathtt{T}\right)$$
+		
+		\textit{После упрощения:}
+		$$g_i(\bm{x}) = -0.5 (\bm{x} - \bm{\mu}_i)\bm{\Sigma}^{-1}(\bm{x} - \bm{\mu}_i)^\mathtt{T} - 0.5\log|\bm{\Sigma}_i| + \log\pi_i$$
+		
 	\end{frame}
 \end{document}
