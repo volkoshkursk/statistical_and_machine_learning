@@ -4,7 +4,9 @@
 \usepackage[T2A]{fontenc}
 \usepackage{cmbright}
 \usepackage[russian]{babel}
-\usetheme{Darmstadt}
+%\usetheme{Darmstadt}
+\usetheme{Boadilla}
+\setbeamertemplate{navigation symbols}{}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{bm}
@@ -18,10 +20,10 @@
 \DeclareMathOperator{\diag}{diag}
 \begin{document}
 	\author{Е. Ларин, Ф. Ежов, И. Кононыхин }
-	\title{Обучение с учителем. Классификация. Дискриминантный анализ. }
+	\title[Machine Learning] {Обучение с учителем. Классификация. Дискриминантный анализ. }
 	%\subtitle{}
 	%\logo{}
-	\institute{Санкт-Петербургский государственный университет 
+	\institute[]{Санкт-Петербургский государственный университет 
 		
 		Прикладная математика и информатика
 		
@@ -205,8 +207,99 @@
 
 
 	\begin{frame}
-		\frametitle{Место Феди}
+	\frametitle{Лог. регрессия}
+			\textit{Зададим модель логистической регрессии следующим образом:}
+			% $$\bm{X} \in \mathbb{R}^{n\times p}, \;\;\mathbf{y}\in \mathbb{A}^n,$$
+			$$\log \dfrac{P(\eta = G_i | \bm{\xi} = \bm{x})}{P(\eta = G_K | \bm{\xi} = \bm{x})} = \beta_{i0} + \bm{\beta}_{i}^T \bm{x}, i = 1, \cdots, K-1.$$
+			
+			\textit{Перейдем от логитов к вероятностям:}
+			
+			$$P(\eta = G_i | \bm{\xi} = \bm{x})\ = \dfrac{e^{\beta_{i0} + \bm{\beta}_{i}^T \bm{x}} }{1 + \sum_{k = 1}^{K-1} e^{\beta_{k0} + \bm{\beta}_{k}^T \bm{x}}} , i = 1, \cdots, K-1 ,$$
+			$$P(\eta = G_K | \bm{\xi} = \bm{x}) = \dfrac{1}{1 + \sum_{k = 1}^{K-1} e^{\beta_{k0} + \bm{\beta}_{k}^T \bm{x}}}.$$
 		
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Лог. регрессия: метод максимального правдоподобия}
+		
+		Для оценки параметров воспользуемся методом максимального правдоподобия:
+		
+			$$ l(\theta) = \sum\limits_{i=1}^{N} \log P(\eta = G_k | \bm{\xi} = \bm{x}; \theta ), $$
+			$$ \theta = (\beta_{10}, \beta^T_1, \dotsc, \beta_{(K-1)0}, \beta^T_{K-1}). $$
+		
+
+		Iteratively reweighted least squares (IRLS).
+		
+		\bigskip 
+		
+		Функция потерь: $\mathfrak{L}(M_i(\beta)) = \log(1 + e^{-y_i \beta^T x_i})$
+		
+	\end{frame}
+
+
+	\begin{frame}
+		\frametitle{SVM}
+	
+		Выборка: $\{x_i, y_i\}_{i=1}^{n}, x_i \in \mathbb{R}^{p}, y_i \in \{-1, 1\}$. \\
+		Задача построить классифицирующие правило.\\
+		
+		\bigskip 
+		
+		Предположим, что данные - разделимы гиперплоскостью,
+		$$ \bm{x}^T\beta - \beta_0 = 0; \beta \in  \mathbb{R}^{p}, \beta_0 \in \mathbb{R},$$
+		$$ g(x) =  \bm{x}^T\beta - \beta_0, $$
+		$$ h(x) =  sign ( g(x) ).$$
+	
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{SVM}
+		
+		Критерий оптимальности: максимальное расстояние между двумя гиперплоскостями, параллельных данной и симметрично расположенных относительно нее.
+		
+		\bigskip 
+		
+		Эта пара гиперплоскостей может быть описана парой уравнений:
+		$$ \bm{x}^T \beta - \beta_0 = -1, $$
+		$$ \bm{x}^T \beta - \beta_0 = 1. $$
+		
+		\bigskip 
+		
+		Растояние между ними: $ \dfrac{2}{||\beta||}. $
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{SVM}
+		Принадлежность точек обучающей выборки полупространства описывается
+		
+		$$ (\bm{x}^T \beta -  \beta_0) y_i \geqslant 1 $$
+		
+		Задача сводится к задаче квадратичного программирования с линейными ограничениями:
+		
+		 $$
+			 \begin{cases}
+			 	\frac{1}{2}||\beta||_2^2\rightarrow \min\limits_{\beta,\beta_0} \\
+			 	y_i\left(x_i^\intercal \beta - \beta_0\right) \geqslant 1 \\
+			 \end{cases}
+		 $$
+	
+	\end{frame}
+
+	\begin{frame}
+	\frametitle{SVM}
+		Принадлежность точек обучающей выборки полупространства описывается
+		
+		$$ (\bm{x}^T \beta -  \beta_0) y_i \geqslant 1 $$
+		
+		Задача сводится к задаче квадратичного программирования с линейными ограничениями:
+		
+		$$
+		\begin{cases}
+			\frac{1}{2}||\beta||_2^2\rightarrow \min\limits_{\beta,\beta_0} \\
+			y_i\left(x_i^\intercal \beta - \beta_0\right) \geqslant 1 \\
+		\end{cases}
+		$$
+	
 	\end{frame}
 
 
