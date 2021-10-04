@@ -236,14 +236,14 @@
 		Для оценки параметров воспользуемся методом максимального правдоподобия:
 		
 			$$ l(\theta) = \sum\limits_{i=1}^{N} \log P(\eta = G_k | \bm{\xi} = \bm{x}; \theta ), $$
-			$$ \theta = (\beta_{10}, \beta^T_1, \dotsc, \beta_{(K-1)0}, \beta^T_{K-1}). $$
+			$$ \theta = (\beta_{10}, \bm{\beta}^T_1, \dotsc, \beta_{(K-1)0}, \bm{\beta}^T_{K-1}). $$
 		
 
 		Iteratively reweighted least squares (IRLS).
 		
 		\bigskip 
 		
-		Функция потерь: $\mathfrak{L}(M_i(\beta)) = \log(1 + e^{-y_i \beta^T x_i})$
+		Функция потерь: $\mathfrak{L}(M_i(\bm{\beta})) = \log(1 + e^{-y_i \bm{\beta}^T \bm{x}_i})$
 		
 	\end{frame}
 
@@ -251,14 +251,14 @@
 	\begin{frame}
 		\frametitle{SVM}
 	
-		Выборка: $\{x_i, y_i\}_{i=1}^{n}, x_i \in \mathbb{R}^{p}, y_i \in \{-1, 1\}$. \\
+		Выборка: $\{x_i, y_i\}_{i=1}^{n}, \bm{x}_i \in \mathbb{R}^{p}, y_i \in \{-1, 1\}$. \\
 		Задача построить классифицирующие правило.\\
 		
 		\bigskip 
 		
 		Предположим, что данные - разделимы гиперплоскостью,
-		$$ \bm{x}^T\beta - \beta_0 = 0; \beta \in  \mathbb{R}^{p}, \beta_0 \in \mathbb{R},$$
-		$$ g(x) =  \bm{x}^T\beta - \beta_0, $$
+		$$ \bm{x}^T\bm{\beta} - \beta_0 = 0; \bm{\beta} \in  \mathbb{R}^{p}, \beta_0 \in \mathbb{R},$$
+		$$ g(x) =  \bm{x}^T \bm{\beta} - \beta_0, $$
 		$$ h(x) =  sign ( g(x) ).$$
 	
 	\end{frame}
@@ -271,26 +271,26 @@
 		\bigskip 
 		
 		Эта пара гиперплоскостей может быть описана парой уравнений:
-		$$ \bm{x}^T \beta - \beta_0 = -1, $$
-		$$ \bm{x}^T \beta - \beta_0 = 1. $$
+		$$ \bm{x}^T \bm{\beta} - \beta_0 = -1, $$
+		$$ \bm{x}^T \bm{\beta} - \beta_0 = 1. $$
 		
 		\bigskip 
 		
-		Растояние между ними: $ \dfrac{2}{||\beta||}. $
+		Растояние между ними: $ \dfrac{2}{||\bm{\beta}||}. $
 	\end{frame}
 
 	\begin{frame}
 		\frametitle{SVM}
 		Принадлежность точек обучающей выборки полупространства описывается
 		
-		$$ (\bm{x}^T \beta -  \beta_0) y_i \geqslant 1 $$
+		$$ M_i (\bm{\beta}, \beta_0) = (\bm{x}^T \bm{\beta} -  \beta_0) y_i \geqslant 1 $$
 		
 		Задача сводится к задаче квадратичного программирования с линейными ограничениями:
 		
 		 $$
 			 \begin{cases}
-			 	\frac{1}{2}||\beta||_2^2\rightarrow \min\limits_{\beta,\beta_0} \\
-			 	y_i\left(x_i^\intercal \beta - \beta_0\right) \geqslant 1 \\
+			 	\frac{1}{2}||\bm{\beta}||_2^2\rightarrow \min\limits_{\bm{\beta},\beta_0} \\
+			 	M_i (\bm{\beta}, \beta_0) \geqslant 1 \\
 			 \end{cases}
 		 $$
 	
@@ -298,21 +298,91 @@
 
 	\begin{frame}
 	\frametitle{SVM}
-		Принадлежность точек обучающей выборки полупространства описывается
-		
-		$$ (\bm{x}^T \beta -  \beta_0) y_i \geqslant 1 $$
-		
-		Задача сводится к задаче квадратичного программирования с линейными ограничениями:
-		
+		Случай когда нету линейной разделимости:
 		$$
 		\begin{cases}
-			\frac{1}{2}||\beta||_2^2\rightarrow \min\limits_{\beta,\beta_0} \\
-			y_i\left(x_i^\intercal \beta - \beta_0\right) \geqslant 1 \\
+			\frac{1}{2}||\bm{\beta}||_2^2 + C \sum \xi_i \rightarrow \min\limits_{\bm{\beta},\beta_0, \bm{\xi}} \\
+			M_i (\bm{\beta}, \beta_0) \geqslant 1 - \xi_i \\
+			\xi_i \geqslant 0 \\
 		\end{cases}
 		$$
 	
 	\end{frame}
 
+	\begin{frame}
+		\frametitle{SVM}
+		
+		Применение условий Каруша-Куна-Таккера к задаче SVM
+		
+		Функция Лагранжа: $L(\bm{\beta}, \beta_0, \bm{\xi}; \bm{\lambda}, \bm{\eta}) =  \frac{1}{2} ||\bm{\beta}||^2 - \sum\limits_{i=1}^{n}(M_i - 1) - \sum\limits_{i=1}^{n} \xi_i(\lambda_i + \eta_i - C),$
+		
+		$\lambda_i$ --- переменные, двойственные к ограничениям $M_i \geqslant 1 - \xi_i$,
+		
+		$\eta_i$ --- переменные, двойственные к ограничениям $\xi_i \geqslant 0 $.
+		
+			$$
+		\begin{cases}
+			\dfrac{\partial L}{\partial \bm{\beta}} = 0, \dfrac{\partial L}{\partial \beta_0} = 0, \dfrac{\partial L}{\partial \bm{\xi}} = 0; \\
+			\xi_i \geqslant 0, \lambda_i \geqslant 0, \eta_i \geqslant 0, i = 1, \dotsc, n; \\
+			\lambda_i = 0 \text{ либо } M_i = 1 - \xi_i, i = 1, \dotsc, n; \\
+			\eta_i = 0 \text{ либо } \xi_i = 0, i = 1, \dotsc, n;
+		\end{cases}
+		$$
+	
+	\end{frame}
+	\begin{frame}
+		\frametitle{SVM}
+		Необходимые условия седловой точки функции Лагранжа:
+		$$ 	\dfrac{\partial L}{\partial \bm{\beta}} = \bm{\beta} - \sum\limits_{i=1}^{n}\lambda_i y_i x_i = 0 \Longrightarrow \bm{\beta} = \sum\limits_{i=1}^{n}\lambda_i y_i x_i $$
+		$$ 	\dfrac{\partial L}{\partial \beta_0} = - \sum\limits_{i=1}^{n}\lambda_i y_i = 0 \Longrightarrow \sum\limits_{i=1}^{n}\lambda_i y_i = 0 $$
+		$$ 	\dfrac{\partial L}{\partial \xi_i} = \lambda_i - \eta_i - C = 0 \Longrightarrow \lambda_i + \eta_i = C, i = 1, \dotsc, n; $$
+	
+	\end{frame}
+	
+	\begin{frame}
+		\frametitle{SVM}
+		Типизация объектов:
+		\begin{enumerate}
+			\item $ \lambda_i = 0; \eta_i = C; \bm{\xi} = 0; M_i \geqslant 1 $ - неинформативные объекты.
+			\item $ 0 < \lambda_i < C; 0 < \eta_i < C; \bm{\xi} = 0; M_i = 1 $ - опорные граничные объекты.
+			\item $ \lambda_i = C; \eta_i = 0; \bm{\xi} > 0; M_i < 1 $ - опорные-нарушители.
+			
+		\end{enumerate}
+	
+	\bigskip
+	
+	Объект называется опорным, если $\lambda_i \neq 0$.
+		
+	\end{frame}
+
+<<<<<<< HEAD
+	\begin{frame}
+	\frametitle{SVM}
+	
+	Решаем: 
+	$$
+		\begin{cases}
+			-L(\bm{\lambda}) = - \sum\limits_{i=1}^n \lambda_i + \frac{1}{2} \sum\limits_{i=1}^{n}\sum\limits_{j=1}^{n} \lambda_i \lambda_j y_i y_j (x_i, x_j) \rightarrow \min\limits_{\bm{\lambda}}; \\
+			0 \leqslant \lambda_i \leqslant C, i = 1, \dotsc, n; \\
+			\sum\limits_{i=1}^{n} \lambda_i y_i = 0.
+		\end{cases}
+	$$
+	
+	Подставим полученные $\lambda$:
+	
+	$$
+	\begin{cases}
+		\bm{\beta} = \sum\limits_{i=1}^n \lambda_i y_i x_i;\\
+		\beta_0 = (\bm{w}, \bm{x}_i) - y_i, \text{ для любого } i: \lambda_i > 0, M_i = 1.
+	\end{cases}
+	$$
+	
+	Линейный классификатор: $ h(x) = sign ( \sum\limits_{i=1}^{n} \lambda_i y_i (\bm{x}, \bm{x}_i) - \beta_0) $
+	\end{frame}	
+	
+	
+=======
+>>>>>>> e61ff3de7de3c1934d19c33b96cbc70bdcf2a399
 	\begin{frame}
 		\frametitle{Кросс-валидация}
 		Кросс-валидация (aka перекрестная проверка, скользящий контроль) --- процедура эмпирического оценивания обобщающей способности алгоритмов. 
