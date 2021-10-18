@@ -52,6 +52,7 @@
         \end{itemize}
 		
 	\end{frame}
+
 	\begin{frame}
 		\frametitle{Обучение с учителем: формальная постановка}
 		\begin{itemize}
@@ -83,7 +84,7 @@
 			\item $\eta \in \mathbb{A}$ --- классовая принадлежность
 		\end{itemize}
 	
-		Предположение об их зависимсти можно записать в виде \ref{2}.
+		Предположение об их зависимости можно записать в виде \ref{2}.
 		\begin{equation}
 			\eta = \Phi(\bm{\xi})
 			\label{2}
@@ -91,6 +92,7 @@
 		
 		\textit{Задача:} найти $\Phi$
 	\end{frame}
+
 	\begin{frame}
 		\frametitle{Классификация: выборочная постановка}
 		\textit{Дано:}
@@ -107,6 +109,7 @@
 		
 		\textit{Задача:} найти $\Phi$
 	\end{frame}
+
 	\begin{frame}
 		\frametitle{Классификация: оценка качества}
 		\begin{figure}
@@ -114,6 +117,7 @@
 		\end{figure}
 	    На основе этой матрицы есть большое количество разных метрик: \textit{accuracy}, \textit{recall}, \textit{precision}, $F_\beta$, \textit{ROC--AUC}
 	\end{frame}
+
 	\begin{frame}
 		\frametitle{Классификация: типы классов}
 		\begin{itemize}
@@ -130,6 +134,7 @@
 			\end{itemize}
 		\end{itemize}
 	\end{frame}
+
 	\begin{frame}
 		\frametitle{Классификация: этапы обучения модели}
 		\begin{itemize}
@@ -139,6 +144,7 @@
 			\item Выбор метода проверки (способ оценки качества модели)
 		\end{itemize}
 	\end{frame}
+
 	\begin{frame}
 		\frametitle{Классификация: задача оптимизации}
 		\begin{itemize}
@@ -150,6 +156,7 @@
 			$$\hat{\beta} = \arg\min_{\beta} \mathfrak{L}(\bm{\Phi}(\bm{x}, \beta), \bm{y})$$
 		\end{block}
 	\end{frame}
+
 	\begin{frame}
 		\frametitle{Классификация: отступы}
 		Можно ввести ту же задачу через оптимизацию функции от отступов.
@@ -160,6 +167,7 @@
 			\label{fig:margins}
 		\end{figure}
 	\end{frame}
+
 	\begin{frame}
 		\frametitle{Классификация: общий подход к решению}
 		Как построить функционал $\Phi$?
@@ -218,38 +226,97 @@
 	\end{frame}
 
 	\begin{frame}
-	\frametitle{Лог. регрессия}
-			\textit{Зададим модель логистической регрессии следующим образом:}
-			% $$\bm{X} \in \mathbb{R}^{n\times p}, \;\;\mathbf{y}\in \mathbb{A}^n,$$
-			$$\log \dfrac{P(\eta = G_i | \bm{\xi} = \bm{x})}{P(\eta = G_K | \bm{\xi} = \bm{x})} = \beta_{i0} + \bm{\beta}_{i}^T \bm{x}, i = 1, \cdots, K-1.$$
+		\frametitle{Немного про регрессию}
+		Обучающая выборка: $\bm{X} \in \mathbb{R}^{n \times p}, \;\;\mathbf{y}\in \mathbb{R}^n$.
+		
+		\begin{enumerate}
+			\item Модель регрессии:
+			$$ \hat{\bm{y}} = \bm{\Phi}(\bm{x}, \beta) = \langle \bm{x}, \beta \rangle = \sum\limits_{j=1}^{p} \beta_j x_j , \; \beta \in \mathbb{R}^p$$
 			
-			\textit{Перейдем от логитов к вероятностям:}
+			\item Функция потерь:
+			$$ \mathfrak{L}(\hat{\bm{y}}, \bm{y}) = (\hat{\bm{y}} - \bm{y})^2$$
 			
-			$$P(\eta = G_i | \bm{\xi} = \bm{x})\ = \dfrac{e^{\beta_{i0} + \bm{\beta}_{i}^T \bm{x}} }{1 + \sum_{k = 1}^{K-1} e^{\beta_{k0} + \bm{\beta}_{k}^T \bm{x}}} , i = 1, \cdots, K-1 ,$$
-			$$P(\eta = G_K | \bm{\xi} = \bm{x}) = \dfrac{1}{1 + \sum_{k = 1}^{K-1} e^{\beta_{k0} + \bm{\beta}_{k}^T \bm{x}}}.$$
+			
+			\item Метод обучения --- метод наименьших квадратов:
+			$$ Q(\beta) = \sum\limits_{i = 1}^{n} (\bm{\Phi}(\bm{x}_i, \beta) - \bm{y}_i)^2 \rightarrow \min\limits_{\beta} $$
+			
+		\end{enumerate}
+	\end{frame}
+	
+	
+	\begin{frame}
+		\frametitle{Со стороны классификации}
+		Обучающая выборка: $\bm{X} \in \mathbb{R}^{n\times p}, \;\; y \in \{-1, 1\}$.
+		
+		\begin{enumerate}
+			\item Модель классификации:
+			$$ \hat{y} = \bm{\Phi}(\bm{x}, \beta) = sign \langle \bm{x}, \beta \rangle = sign \sum\limits_{j=1}^{p} \beta_j x_j , \; \beta \in \mathbb{R}^p$$
+			
+			\item Функция потерь:
+			$$ \mathfrak{L}(\hat{y}, y) = [\hat{y} y < 0] = [ \langle \bm{x}, \beta \rangle y < 0 ] \leqslant \hat{\mathfrak{L}}( \langle \bm{x}, \beta \rangle y) $$
+			
+			
+			\item Метод обучения --- минимизация эмпирического риска:
+			$$ Q(\beta) = \sum\limits_{i = 1}^{n} [\langle \bm{x}_i, \beta \rangle y_i < 0] \leqslant \sum\limits_{i = 1}^{n} \hat{\mathfrak{L}}( \langle \bm{x}_i, \beta \rangle y_i)  \rightarrow \min\limits_{\beta} $$
+			
+		\end{enumerate}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Отступы}
+		
+		$\bm{\Phi}(\bm{x}, \beta) = sign  (g(\bm{x}, \beta))$ --- разделяющий классификатор,\\
+		$g(\bm{x}, \beta)$ --- разделяющая функция,\\
+		$g(\bm{x}, \beta) = 0$ --- уравнение разделяющей поверхности.\\
+		
+		\bigskip
+		
+		$M_i(\beta) = g(\bm{x}_i, \beta) y_i$ --- отступ объекта $\bm{x}_i$. \\
+		Если $M_i(\beta) < 0$, тогда алгоритм ошибается на $\bm{x}_i$.
+	
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{Отступы}
+		\begin{figure}
+			\centering
+			\includegraphics[width=0.7\linewidth]{imgs/margins}
+			
+			\label{fig:margins}
+		\end{figure}
+	\end{frame}
+
+	\begin{frame}
+	\frametitle{Логистическая регрессия}
+	
+			Линейная модель классификации для двух классов $y \in \{-1, 1\}$: 
+			
+			$$ \bm{\Phi}(\bm{x}, \beta) = sign  (\langle \bm{x}, \beta \rangle) $$
+			
+			Отступ $M = \langle \bm{x}_i, \beta \rangle y$.
+			
+			Логистическая функция потерь: $\mathfrak{L}(M) = \log (1 + e^{-M})$
+			
+			Модель условной вероятности: $ P(y| \bm{x}, \beta) = \sigma(M) = \dfrac{1}{1+e^{-M}}$ 
 		
 	\end{frame}
 
 	\begin{frame}
-		\frametitle{Лог. регрессия: метод максимального правдоподобия}
+		\frametitle{Логистическая регрессия: SoftMax}
+		Линейный классификатор при произвольном числе классов $|Y|$:
 		
-		Для оценки параметров воспользуемся методом максимального правдоподобия:
+		$$\bm{\Phi}(\bm{x}, \beta) = \arg \max\limits_{y \in Y} \langle \bm{x}, \beta_y \rangle $$
 		
-			$$ l(\theta) = \sum\limits_{i=1}^{N} \log P(\eta = G_k | \bm{\xi} = \bm{x}; \theta ), $$
-			$$ \theta = (\beta_{10}, \bm{\beta}^T_1, \dotsc, \beta_{(K-1)0}, \bm{\beta}^T_{K-1}). $$
+		Вероятность того, что объект $\bm{x}$ относится к классу $y$:
 		
-
-		Iteratively reweighted least squares (IRLS).
+		$$ P(y| \bm{x}, \beta) = \dfrac{e^{\langle \bm{x}, \beta_y \rangle}}{\sum\limits_{z \in Y} e^{\langle \bm{x}, \beta_z \rangle}} = SoftMax_{y \in Y}\langle \bm{x}, \beta_y \rangle $$
 		
-		\bigskip 
-		
-		Функция потерь: $\mathfrak{L}(M_i(\bm{\beta})) = \log(1 + e^{-y_i \bm{\beta}^T \bm{x}_i})$
-		
+		Функция $SoftMax: \mathbb{R}^Y \rightarrow \mathbb{R}^Y$ переводит произвольный вектор в нормированный вектор дискретного распределения.
 	\end{frame}
 
 
 	\begin{frame}
-		\frametitle{SVM}
+		\frametitle{SVM: Постановка задачи}
 	
 		Выборка: $\{x_i, y_i\}_{i=1}^{n}, \bm{x}_i \in \mathbb{R}^{p}, y_i \in \{-1, 1\}$. \\
 		Задача построить классифицирующие правило.\\
@@ -257,64 +324,59 @@
 		\bigskip 
 		
 		Предположим, что данные - разделимы гиперплоскостью,
-		$$ \bm{x}^T\bm{\beta} - \beta_0 = 0; \bm{\beta} \in  \mathbb{R}^{p}, \beta_0 \in \mathbb{R},$$
-		$$ g(x) =  \bm{x}^T \bm{\beta} - \beta_0, $$
-		$$ h(x) =  sign ( g(x) ).$$
+		$$ \bm{x}^T\beta - \beta_0 = 0; \beta \in  \mathbb{R}^{p}, \beta_0 \in \mathbb{R},$$
+		$$ g(x) =  \bm{x}^T \beta - \beta_0, $$
+		$$ \bm{\Phi}(x) =  sign ( g(x) ).$$
 	
 	\end{frame}
 
 	\begin{frame}
-		\frametitle{SVM}
+		\frametitle{SVM: Постановка задачи}
 		
 		Критерий оптимальности: максимальное расстояние между двумя гиперплоскостями, параллельных данной и симметрично расположенных относительно нее.
 		
 		\bigskip 
 		
 		Эта пара гиперплоскостей может быть описана парой уравнений:
-		$$ \bm{x}^T \bm{\beta} - \beta_0 = -1, $$
-		$$ \bm{x}^T \bm{\beta} - \beta_0 = 1. $$
+		$$ \bm{x}^T \beta - \beta_0 = -1, $$
+		$$ \bm{x}^T \beta - \beta_0 = 1. $$
 		
 		\bigskip 
 		
-		Растояние между ними: $ \dfrac{2}{||\bm{\beta}||}. $
+		Растояние между ними: $ \dfrac{2}{||\beta||}. $
 	\end{frame}
 
 	\begin{frame}
-		\frametitle{SVM}
+		\frametitle{SVM: Задача квадратичного программирования}
 		Принадлежность точек обучающей выборки полупространства описывается
 		
-		$$ M_i (\bm{\beta}, \beta_0) = (\bm{x}^T \bm{\beta} -  \beta_0) y_i \geqslant 1 $$
+		$$ M_i = (\bm{x}^T \beta -  \beta_0) y_i \geqslant 1 $$
 		
 		Задача сводится к задаче квадратичного программирования с линейными ограничениями:
 		
 		 $$
 			 \begin{cases}
-			 	\frac{1}{2}||\bm{\beta}||_2^2\rightarrow \min\limits_{\bm{\beta},\beta_0} \\
-			 	M_i (\bm{\beta}, \beta_0) \geqslant 1 \\
+			 	\frac{1}{2}||\beta||_2^2\rightarrow \min\limits_{\beta,\beta_0} \\
+			 	M_i  \geqslant 1 \\
 			 \end{cases}
 		 $$
 	
-	\end{frame}
-
-	\begin{frame}
-	\frametitle{SVM}
 		Случай когда нету линейной разделимости:
 		$$
 		\begin{cases}
-			\frac{1}{2}||\bm{\beta}||_2^2 + C \sum \xi_i \rightarrow \min\limits_{\bm{\beta},\beta_0, \bm{\xi}} \\
-			M_i (\bm{\beta}, \beta_0) \geqslant 1 - \xi_i \\
+			\frac{1}{2}||\beta||_2^2 + C \sum \xi_i \rightarrow \min\limits_{\beta,\beta_0, \xi} \\
+			M_i \geqslant 1 - \xi_i \\
 			\xi_i \geqslant 0 \\
 		\end{cases}
 		$$
-	
 	\end{frame}
 
 	\begin{frame}
-		\frametitle{SVM}
+		\frametitle{SVM: Условия Каруша-Куна-Таккера}
 		
 		Применение условий Каруша-Куна-Таккера к задаче SVM
 		
-		Функция Лагранжа: $L(\bm{\beta}, \beta_0, \bm{\xi}; \bm{\lambda}, \bm{\eta}) =  \frac{1}{2} ||\bm{\beta}||^2 - \sum\limits_{i=1}^{n}(M_i - 1) - \sum\limits_{i=1}^{n} \xi_i(\lambda_i + \eta_i - C),$
+		Функция Лагранжа: $L(\beta, \beta_0, \xi; \lambda, \eta) =  \frac{1}{2} ||\beta||^2 - \sum\limits_{i=1}^{n}(M_i - 1) - \sum\limits_{i=1}^{n} \xi_i(\lambda_i + \eta_i - C),$
 		
 		$\lambda_i$ --- переменные, двойственные к ограничениям $M_i \geqslant 1 - \xi_i$,
 		
@@ -322,7 +384,7 @@
 		
 			$$
 		\begin{cases}
-			\dfrac{\partial L}{\partial \bm{\beta}} = 0, \dfrac{\partial L}{\partial \beta_0} = 0, \dfrac{\partial L}{\partial \bm{\xi}} = 0; \\
+			\dfrac{\partial L}{\partial \beta} = 0, \dfrac{\partial L}{\partial \beta_0} = 0, \dfrac{\partial L}{\partial \xi} = 0; \\
 			\xi_i \geqslant 0, \lambda_i \geqslant 0, \eta_i \geqslant 0, i = 1, \dotsc, n; \\
 			\lambda_i = 0 \text{ либо } M_i = 1 - \xi_i, i = 1, \dotsc, n; \\
 			\eta_i = 0 \text{ либо } \xi_i = 0, i = 1, \dotsc, n;
@@ -333,19 +395,19 @@
 	\begin{frame}
 		\frametitle{SVM}
 		Необходимые условия седловой точки функции Лагранжа:
-		$$ 	\dfrac{\partial L}{\partial \bm{\beta}} = \bm{\beta} - \sum\limits_{i=1}^{n}\lambda_i y_i x_i = 0 \Longrightarrow \bm{\beta} = \sum\limits_{i=1}^{n}\lambda_i y_i x_i $$
+		$$ 	\dfrac{\partial L}{\partial \beta} = \beta - \sum\limits_{i=1}^{n}\lambda_i y_i \bm{x}_i = 0 \Longrightarrow \beta = \sum\limits_{i=1}^{n}\lambda_i y_i \bm{x}_i $$
 		$$ 	\dfrac{\partial L}{\partial \beta_0} = - \sum\limits_{i=1}^{n}\lambda_i y_i = 0 \Longrightarrow \sum\limits_{i=1}^{n}\lambda_i y_i = 0 $$
 		$$ 	\dfrac{\partial L}{\partial \xi_i} = \lambda_i - \eta_i - C = 0 \Longrightarrow \lambda_i + \eta_i = C, i = 1, \dotsc, n; $$
 	
 	\end{frame}
 	
 	\begin{frame}
-		\frametitle{SVM}
+		\frametitle{SVM: Опорные объекты}
 		Типизация объектов:
 		\begin{enumerate}
-			\item $ \lambda_i = 0; \eta_i = C; \bm{\xi} = 0; M_i \geqslant 1 $ - неинформативные объекты.
-			\item $ 0 < \lambda_i < C; 0 < \eta_i < C; \bm{\xi} = 0; M_i = 1 $ - опорные граничные объекты.
-			\item $ \lambda_i = C; \eta_i = 0; \bm{\xi} > 0; M_i < 1 $ - опорные-нарушители.
+			\item $ \lambda_i = 0; \eta_i = C; \xi = 0; M_i \geqslant 1 $ - неинформативные объекты.
+			\item $ 0 < \lambda_i < C; 0 < \eta_i < C; \xi = 0; M_i = 1 $ - опорные граничные объекты.
+			\item $ \lambda_i = C; \eta_i = 0; \xi > 0; M_i < 1 $ - опорные-нарушители.
 			
 		\end{enumerate}
 	
@@ -371,15 +433,31 @@
 	
 	$$
 	\begin{cases}
-		\bm{\beta} = \sum\limits_{i=1}^n \lambda_i y_i x_i;\\
-		\beta_0 = (\bm{w}, \bm{x}_i) - y_i, \text{ для любого } i: \lambda_i > 0, M_i = 1.
+		\beta = \sum\limits_{i=1}^n \lambda_i y_i x_i;\\
+		\beta_0 = \langle\beta, \bm{x}_i\rangle - y_i, \text{ для любого } i: \lambda_i > 0, M_i = 1.
 	\end{cases}
 	$$
 	
-	Линейный классификатор: $ h(x) = sign ( \sum\limits_{i=1}^{n} \lambda_i y_i (\bm{x}, \bm{x}_i) - \beta_0) $
+	Линейный классификатор: $ \bm{\Phi}(x) = sign ( \sum\limits_{i=1}^{n} \lambda_i y_i \langle\bm{x}, \bm{x}_i\rangle - \beta_0) $
 	\end{frame}	
 	
-	
+	\begin{frame}
+		\frametitle{SVM: Нелинейное обобщение}
+		Заменим $\langle \bm{x}, \bm{x}^{'} \rangle$ нелинейной функцией $K(\bm{x}, \bm{x}^{'})$.
+		
+		\begin{block}{Определение}
+			Функция $K: X \times X \rightarrow \mathbb{R}$ --- ядро, если $K(\bm{x}, \bm{x}^{'}) = \langle \phi(\bm{x}), \phi(\bm{x}^{'}) \rangle$ при некотором $\phi: X \rightarrow H$, где $H$ --- гильбертово пространство.
+		\end{block}
+	\end{frame}
+
+	\begin{frame}
+		\frametitle{SVM: Примеры ядер}
+		\begin{enumerate}
+			\item $K(\bm{x}, \bm{x}^{'}) = \langle\bm{x}, \bm{x}^{'} \rangle^2$ --- квадратичное ядро. 
+			\item $K(\bm{x}, \bm{x}^{'}) = \langle \bm{x}, \bm{x}^{'} \rangle^d$ --- полиномиальное ядро степени d. 
+			\item $K(\bm{x}, \bm{x}^{'}) = \exp(-\gamma ||\bm{x} -  \bm{x}^{'}||^2) $ --- сеть радиальных базисных функций (RBF ядро).
+		\end{enumerate}
+	\end{frame}
 
 	\begin{frame}
 		\frametitle{Кросс-валидация}
