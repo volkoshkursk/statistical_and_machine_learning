@@ -10,6 +10,7 @@
 
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{amssymb}
 \usepackage{bm}
 \usepackage{graphicx}
 % Использовать полужирное начертание для векторов
@@ -46,7 +47,11 @@
 			
 			\item \textit{Оценка}: Функция потерь $\mathfrak{L}(y^*(x), \hat{y}^*(x))$. Здесь $x$ --- реализация $\bm{\xi}$
 		\end{itemize}
-
+		
+		\subsection{Отступы}
+		\label{margins}
+		Введем понятие отступов. Пусть 	$\Phi(\bm{x}, \beta) = sign  (g(\bm{x}, \beta))$ --- разделяющий классификатор. Тогда $g(\bm{x}, \beta)$ --- разделяющая функция, а $g(\bm{x}, \beta) = 0$ --- уравнение разделяющей поверхности. Отступом для объекта $x_i$ будем называть значение $M_i(\beta)$, такое что $M_i(\beta) = g(\bm{x}_i, \beta) y_i$. Если $M_i(\beta) < 0$, тогда алгоритм ошибается на $\bm{x}_i$, иначе алгоритм классифицировал объект верно. Чем больше значение $|M_i(\beta)|$, тем больше уверенность в правильности или неправильности классификации объекта.
+		
 		\section{Классификация}
 		Перейдём к задаче классификации. Как и в задаче регрессии, данные должны происходить из некоторой генеральной совокупности. 
 		
@@ -248,6 +253,306 @@
 %
 %		\end{figure}
 
+\section{Логистическая регрессия}
+
+Дана выборка $\bm{X} \in \mathbb{R}^{n\times p}$. Поставим задачу классификации объектов $\bm{x}_i$ на два класса $\{-1, 1\}$. 
+
+\subsection{Подход через минимизацию функции потерь}
+
+Воспользуемся линейной моделью для решение задачи классификации:
+
+\begin{equation}
+	\hat{y} = \Phi(\bm{x}, \beta) = sign \langle \bm{x}, \beta \rangle
+	\label{7}
+\end{equation}
+
+Функция потерь в данном случае будет:
+
+\begin{equation}
+	\mathfrak{L}(\hat{y}, y) = [\hat{y} y < 0] = [ \langle \bm{x}, \beta \rangle y < 0 ]
+	\label{8}
+\end{equation}
+
+Задача минимизация записывается следующим образом:
+
+\begin{equation}
+	Q(\beta) = \sum\limits_{i = 1}^{n} [\langle \bm{x}_i, \beta \rangle y_i < 0] \rightarrow \min\limits_{\beta}
+	\label{9}
+\end{equation}
+
+Перейдем от задачи \ref{9} к другой, заменив в \ref{8} функцию потерь на другую  ($ \hat{\mathfrak{L}} $) мажорирующую ее, получим:
+
+\begin{equation}
+	\mathfrak{L}(\hat{y}, y) = [ \langle \bm{x}, \beta \rangle y < 0 ] \leqslant \hat{\mathfrak{L}}( \langle \bm{x}, \beta \rangle y)
+	\label{10}
+\end{equation}
+
+\begin{equation}
+Q(\beta) = \sum\limits_{i = 1}^{n} [\langle \bm{x}_i, \beta \rangle y_i < 0] \leqslant \sum\limits_{i = 1}^{n} \hat{\mathfrak{L}}( \langle \bm{x}_i, \beta \rangle y_i)  \rightarrow \min\limits_{\beta}
+\label{11}
+\end{equation}
+
+Видно, что аргумент функции потерь $\hat{\mathfrak{L}}$, это ничто иное как отступ $M_i$ для объекта в $\bm{x}_i$ введенный в главе \ref{margins}.
+
+Чтобы линейная модель в задаче \ref{11} стала логистической регрессией, достаточно взять функцию потерь $\hat{\mathfrak{L}}(M_i) = \log(1 + e^{-M_i})$. Такая функция потерь называется логарифмической или логистической. 
+
+Тогда задача минимизации \ref{11} запишется так:
+
+\begin{equation}
+	Q(\beta) = \sum\limits_{i = 1}^{n} \log(1 + e^{- \langle \bm{x}_i, \beta \rangle y_i})  \rightarrow \min\limits_{\beta}
+	\label{12}
+\end{equation}
+
+Методы решение задачи минимизации:
+
+\begin{itemize}
+	\item метод стохастического градиента
+	\item метод Ньютона-Рафсона
+\end{itemize}
+
+\subsection{Вероятностный подход}
+
+Пусть $\sigma$ --- сигмоида и:
+
+\begin{itemize}
+	\item $P(y_i = 1 | \bm{x}_i; \beta) = \sigma_\beta(M_i) $, вероятность объекта $\bm{x}_i$ принадлежать классу $1$.
+	\item $P(y_i = -1 | \bm{x}_i; \beta) = 1 - \sigma_\beta(M_i) $, вероятность объекта $\bm{x}_i$ принадлежать классу $-1$.
+\end{itemize}
+
+Тогда $P(y_i | \bm{x}_i; \beta) = \sigma_\beta(M) = \dfrac{1}{1 + e^{- \langle \bm{x}, \beta \rangle y}}$
+
+Запишем логарифм функции правдоподобия:
+
+\begin{equation}
+	Q(\bm{X}, \beta) = \log \bm{L}(\beta) = \log 	
+	\prod\limits_{i = 1}^{n} P(y_i | \bm{x}_i; \beta) = - \sum\limits_{i = 1}^{n} \log(1 + e^{- \langle \bm{x}_i, \beta \rangle y_i}) \rightarrow \max\limits_{\beta}
+	\label{13}
+\end{equation}
+
+Заметим, что задача \ref{13} совпадает с задачей \ref{12}.
+
+\subsection{Регуляризация}
+
+В задачу минимизации можно добавить параметры $\beta$, тогда мы получим регуляризацию:
+
+\begin{itemize}
+	\item \textbf{L1 регуляризация:}  $$Q(\beta) = \sum\limits_{i = 1}^{n} \log(1 + e^{- \langle \bm{x}_i, \beta \rangle y_i}) + \lambda \sum\limits_{j = 1}^{p}|\beta_j| \rightarrow \min\limits_{\beta}$$
+	\item \textbf{L2 регуляризация:}  $$Q(\beta) = \sum\limits_{i = 1}^{n} \log(1 + e^{- \langle \bm{x}_i, \beta \rangle y_i}) + \frac{\lambda}{2} \sum\limits_{j = 1}^{p}\beta_j^2 \rightarrow \min\limits_{\beta}$$
+\end{itemize}
+
+Параметр $\lambda$ отвечает за <<силу>> регуляризации и может быть подобран с помощью кросс-валидации.
+
+\subsection{Многоклассовая логистическая регрессия}
+
+Пусть $\bm{Y} = \{1, \dotsc , K\}$, тогда запишем линейный классифкатор следующим образом:
+
+\begin{equation}
+	\hat{y} = \arg \max\limits_{y \in \bm{Y}} \langle \bm{x}_i, \beta_y \rangle, \bm{x}, \beta \in \mathbb{R}^p
+	\label{14}
+\end{equation}
+
+Вероятность того, что объект $x_i$ относится к классу $j$:
+
+\begin{equation}
+	P(y = j | x_i; \beta) = \dfrac{\exp(\langle \bm{x}_i, \beta_y \rangle)}{\sum\limits_{z \in \bm{Y}} \exp(\langle \bm{x}_i, \beta_z \rangle)} = \dfrac{e^{\beta_j^T\bm{x}}}{\sum\limits_{k = 1}^K e^{\beta_k^T\bm{x}}}
+	\label{15}
+\end{equation}
+
+Задача максимизации для многоклассового случая получается заменой функции вероятности в \ref{13} на функцию вероятности в \ref{15}.
+
+\section{Support Vector Machine}
+
+Пусть дана выборка $\{x_i, y_i\}_{i=1}^{n}, \bm{x}_i \in \mathbb{R}^{p}, y_i \in \{-1, 1\}$. Поставим задачу построить классифицирующие правило. Также введем критерий оптимальности: хотим найти такую разделяющую гиперплоскость, что растояние между еще двумя параллельных данной и симметрично расположенных относительно нее имеют максимальное растояние.
+ 
+\begin{figure}[h]
+	\centering{\includegraphics[width=0.5\linewidth]{imgs/svm}}
+\end{figure}
+
+\subsection{Hard-margin SVM}
+
+Предположим что наша выборка линейно разделима. Тогда искомая гиперплоскость:
+
+\begin{equation}
+	\bm{x}^T\beta - \beta_0 = 0; \beta \in  \mathbb{R}^{p}, \beta_0 \in \mathbb{R}
+	\label{16}
+\end{equation}
+
+А классифицирующие правило строится следующим образом:
+
+\begin{equation}
+	\begin{split}
+	 g(x) =  \bm{x}^T \beta - \beta_0, \\
+	 \bm{\Phi}(x) =  sign ( g(x) ).
+	\end{split}
+	\label{17}
+\end{equation}
+
+Уравнения пары гиперплоскостей с точностью до нормировки:
+
+\begin{equation}
+	\begin{split}
+		\bm{x}^T \beta - \beta_0 = -1, \\
+		\bm{x}^T \beta - \beta_0 = 1.
+	\end{split}
+	\label{18}
+\end{equation}
+
+А расстояние между ними равно: $\dfrac{2}{||\beta||}$
+
+Принадлежность точек обучающей выборки описывается как отступ (\ref{19}) от разделяющей гипер плоскости. Отступ всегда больше или равен $1$, так как наша выборка линейно разделима.
+
+\begin{equation}
+	M_i = (\bm{x}^T \beta - \beta_0)y_i \geqslant 1
+	\label{19}
+\end{equation}
+
+Задача построения разделяющей гиперплоскости сводится к задаче квадратичного программирования с линейными ограничениями:
+
+\begin{equation}
+	\begin{cases}
+		\frac{1}{2}||\beta||_2^2\rightarrow \min\limits_{\beta,\beta_0} \\
+		M_i  \geqslant 1 \\
+	\end{cases}
+	\label{20}
+\end{equation}
+
+\subsection{Soft-margin SVM}
+
+Передем к случаю когда выборка линейно не разделима, тогда задача \ref{20} не имеет решения, так как система неравенств несовместна. Перепишем задачу \ref{20}, добавим небольшие изменения.
+
+\begin{equation}
+	\begin{cases}
+		\frac{1}{2}||\beta||_2^2 + C \sum \xi_i \rightarrow \min\limits_{\beta,\beta_0, \xi} \\
+		M_i \geqslant 1 - \xi_i \\
+		\xi_i \geqslant 0 \\
+	\end{cases}
+	\label{21}
+\end{equation}
+
+Теперь мы разрешили объектам нарушать границы разделяющей гиперплоскости. Так же мы добавили сумму этих нарушений $\xi$ с весом $C$ в минимизируемый функцианал, чтобы подобрать такую гиперплоскость в которой объектов <<нарушителей>> будет наименьшим.
+
+Применим условия Каруши-Куна-Таккера к задаче \ref{21}. Запишем функцию Лагранжа:
+
+\begin{equation}
+	L(\beta, \beta_0, \xi; \lambda, \eta) =  \frac{1}{2} ||\beta||^2 - \sum\limits_{i=1}^{n}(M_i - 1) - \sum\limits_{i=1}^{n} \xi_i(\lambda_i + \eta_i - C)
+	\label{22}
+\end{equation}
+
+$\lambda_i$ --- переменные, двойственные к ограничениям $M_i \geqslant 1 - \xi_i$,
+
+$\eta_i$ --- переменные, двойственные к ограничениям $\xi_i \geqslant 0 $.\\
+
+
+Также запишем условия для первых производных функции Лагранжа, исходные ограничения, ограничения к двойственным переменным и условиями дополняющей нежесткости.
+
+\begin{equation}
+	\begin{cases}
+		\dfrac{\partial L}{\partial \beta} = 0, \dfrac{\partial L}{\partial \beta_0} = 0, \dfrac{\partial L}{\partial \xi} = 0; \\
+		\xi_i \geqslant 0, \lambda_i \geqslant 0, \eta_i \geqslant 0, i = 1, \dotsc, n; \\
+		\lambda_i = 0 \text{ либо } M_i = 1 - \xi_i, i = 1, \dotsc, n; \\
+		\eta_i = 0 \text{ либо } \xi_i = 0, i = 1, \dotsc, n;
+	\end{cases}
+	\label{23}
+\end{equation}
+
+Распишем производные поподробнее, получаем необходимые условия седловой точки функции Лагранжа:
+\begin{equation}
+	\begin{split}
+ 	\dfrac{\partial L}{\partial \beta} = \beta - \sum\limits_{i=1}^{n}\lambda_i y_i \bm{x}_i = 0 \Longrightarrow \beta = \sum\limits_{i=1}^{n}\lambda_i y_i \bm{x}_i \\
+ 	\dfrac{\partial L}{\partial \beta_0} = - \sum\limits_{i=1}^{n}\lambda_i y_i = 0 \Longrightarrow \sum\limits_{i=1}^{n}\lambda_i y_i = 0 \\
+ 	\dfrac{\partial L}{\partial \xi_i} = \lambda_i - \eta_i - C = 0 \Longrightarrow \lambda_i + \eta_i = C, i = 1, \dotsc, n; 
+ 	\end{split}
+ 	\label{24}
+\end{equation}
+
+Из этих условий можем записать типизацию объектов:
+
+\begin{enumerate}
+	\item $ \lambda_i = 0; \eta_i = C; \xi = 0; M_i \geqslant 1 $ - неинформативные объекты.
+	\item $ 0 < \lambda_i < C; 0 < \eta_i < C; \xi = 0; M_i = 1 $ - опорные граничные объекты.
+	\item $ \lambda_i = C; \eta_i = 0; \xi > 0; M_i < 1 $ - опорные-нарушители.
+\end{enumerate}
+
+Из формул \ref{24} видно, что объекты отступ $M_i$ которых больше $1$ не участвуют в построении разделяющей гиперплоскости. 
+
+Отсюда можно дать определение опорным объектам. Объект $x_i$ называется опорным, если $\lambda_i \neq 0$.
+
+Избавимся от всех переменных, кроме двойственных в \ref{22}, получим:
+
+\begin{equation}
+	\begin{cases}
+		-L(\bm{\lambda}) = - \sum\limits_{i=1}^n \lambda_i + \frac{1}{2} \sum\limits_{i=1}^{n}\sum\limits_{j=1}^{n} \lambda_i \lambda_j y_i y_j (x_i, x_j) \rightarrow \min\limits_{\bm{\lambda}}; \\
+		0 \leqslant \lambda_i \leqslant C, i = 1, \dotsc, n; \\
+		\sum\limits_{i=1}^{n} \lambda_i y_i = 0.
+	\end{cases}
+	\label{25}
+\end{equation}
+
+Решение прямой задачи выражается через решение двойственной:
+
+\begin{equation}
+	\begin{cases}
+		\beta = \sum\limits_{i=1}^n \lambda_i y_i x_i;\\
+		\beta_0 = \langle\beta, \bm{x}_i\rangle - y_i, \text{ для любого } i: \lambda_i > 0, M_i = 1.
+	\end{cases}
+	\label{26}
+\end{equation}
+
+Тогда 
+
+Линейный классификатор с признаками $f_i(x) = \langle x, x^{'} \rangle $: 
+\begin{equation} 
+	\bm{\Phi}(x) = sign ( \sum\limits_{i=1}^{n} \lambda_i y_i \langle\bm{x}, \bm{x}_i\rangle - \beta_0) 
+	\label{27}
+\end{equation}
+
+\subsection{Минимизация эмпирического риска}
+
+Как и в случае задачи минимизации \ref{11} (логистической регрессии), можем записать задачу минимизации в общей форме:
+
+\begin{equation*} 
+Q(\beta) = \sum\limits_{i = 1}^{n} \hat{\mathfrak{L}}( M_i )  \rightarrow \min\limits_{\beta}
+\end{equation*}
+
+Чтобы получить SVM достаточно взять $\hat{\mathfrak{L}}(M) = \max(0, 1 - M)$. В случае SVM $M_i = g(x_i, \beta)y_i = (\bm{x}_i^T \beta - \beta_0)y_i$.
+
+Подставляя функцию потерь и отступ, получаем задачу минимизации:
+
+\begin{equation} 
+	Q(\beta) = \sum\limits_{i = 1}^{n} \max(0, 1 - (\bm{x}_i^T \beta - \beta_0)y_i)  \rightarrow \min\limits_{\beta}
+	\label{27}
+\end{equation}
+
+\subsection{Нелинейное обобщение}
+	Можно заменить $ \langle x, x^{'} \rangle $ в \ref{27} на нелинейную функцию $K( x, x^{'} )$. \\
+
+	Определение: Функция $K: X \times X \rightarrow \mathbb{R}$ --- ядро, если $K(\bm{x}, \bm{x}^{'}) = \langle \phi(\bm{x}), \phi(\bm{x}^{'}) \rangle$ при некотором $\phi: X \rightarrow H$, где $H$ --- гильбертово пространство.
+	
+	Данное соображение позволяет применять SVM к данным в достаточной степени линейно разделимым в некотором гильбертовом пространстве (в том числе --- бесконечномерном); в том числе --- без предъявления в явном виде отображения из исходного пространства в данное.
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.7\linewidth]{imgs/kernels}
+	\end{figure}
+
+	Так как непосредственная проверка положительной определённости ядра представляет собой проблему, можно воспользоваться следующими операциями, приводящими к получению новых ядер:
+	
+	\begin{itemize}
+		\item Скалярное произведение в векторном пространстве
+		\item Положительная константа
+		\item Произведение ядер: $K(u, v) = K_1(u, v) K_2(u, v)$
+		\item Произведение отображений: $K(u, v) = \phi(u)\phi(v), \phi: x \rightarrow \mathbb{R}$
+		\item Линейная комбинация с положительными коэффициентами: $K(u, v) = \alpha_1 K_1(u, v) + \alpha_2 K_2(u, v), \alpha_{1,2} > 0$
+		\item Композиция ядра и отображения: $K(u, v) =  K_1(\phi(u), \phi(v))$
+		\item Степенной ряд: $$ f: \mathbb{R} \rightarrow \mathbb{R}$$ сходящийся степенной ряд с положительными коэффициентами, тогда $$ K(u, v) = f(K_1(u, v)) $$ является ядром.
+	\end{itemize} 
+	
+	
+	Часто используемые ядра:
+	\begin{itemize}
+		\item RBF (radial basis functions): $K(x, x^{'}) = e^{-\gamma ||x - x^{'}||_2^2}$
+		\item Полиномиальное (степеней $\leqslant d : K(x, x^{'}) = (\langle x - x^{'} \rangle + 1)^d$)
+	\end{itemize} 
 
 	
 \end{document}
