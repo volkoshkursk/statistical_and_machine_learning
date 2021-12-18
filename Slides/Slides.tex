@@ -113,7 +113,7 @@
 	\begin{frame}
 		\frametitle{Классификация: оценка качества}
 		\begin{figure}
-			\includegraphics[width=0.3\linewidth]{imgs/conf_matrix}
+			\includegraphics[width=0.3\linewidth]{../Report/imgs/conf_matrix}
 		\end{figure}
 	    На основе этой матрицы есть большое количество разных метрик: \textit{accuracy}, \textit{recall}, \textit{precision}, $F_\beta$, \textit{ROC--AUC}
 	\end{frame}
@@ -162,7 +162,7 @@
 		Можно ввести ту же задачу через оптимизацию функции от отступов.
 		\begin{figure}
 			\centering
-			\includegraphics[width=0.7\linewidth]{imgs/lossfuns}
+			\includegraphics[width=0.7\linewidth]{../Report/imgs/lossfuns}
 
 			\label{fig:margins}
 		\end{figure}
@@ -280,7 +280,7 @@
 		\frametitle{Отступы}
 		\begin{figure}
 			\centering
-			\includegraphics[width=0.7\linewidth]{imgs/margins}
+			\includegraphics[width=0.7\linewidth]{../Report/imgs/margins}
 			
 			\label{fig:margins}
 		\end{figure}
@@ -375,7 +375,7 @@
 		\frametitle{SVM: Постановка задачи}
 		\begin{figure}
 			\centering
-			\includegraphics[width=0.7\linewidth]{imgs/svm}
+			\includegraphics[width=0.7\linewidth]{../Report/imgs/svm}
 			
 			\label{fig:margins}
 		\end{figure}
@@ -489,7 +489,7 @@
 		\frametitle{SVM: Нелинейное обобщение}
 		\begin{figure}
 			\centering
-			\includegraphics[width=0.7\linewidth]{imgs/kernels}
+			\includegraphics[width=0.7\linewidth]{../Report/imgs/kernels}
 			
 			\label{fig:margins}
 		\end{figure}
@@ -539,7 +539,7 @@
 		\frametitle{Кросс-валидация: Hold-Out Validation}
 		Обучающая выборка один раз случайным образом разбивается на две части $\bm{T} = \bm{T}^t \cup \bm{T}^{N-t}$.
 		\begin{figure}
-			\includegraphics[width=0.9\linewidth]{imgs/hold-out}
+			\includegraphics[width=0.9\linewidth]{../Report/imgs/hold-out}
 		\end{figure}
 		После чего решается задача оптимизации:
 		$HO(\mu, \bm{T}^t, \bm{T}^{N-t}) = \mathfrak{L}(\mu(\bm{T}^t), \bm{T}^{N-t}) \rightarrow min$.
@@ -557,7 +557,7 @@
 			\item Выборка разбивается всевозможными способами на две части $\bm{T} = \bm{T}^t \cup \bm{T}^{N-t}$.
 		\end{itemize}
 		\begin{figure}
-			\includegraphics[width=0.9\linewidth]{imgs/completecrossvalidation}
+			\includegraphics[width=0.9\linewidth]{../Report/imgs/completecrossvalidation}
 		\end{figure}
 		После чего решается задача оптимизации:
 		$CVV_t = \frac{1}{C_N^{N-t}}\sum\limits_{\bm{T}^N = \bm{T}^t \cup \bm{T}^{N-t}} \mathfrak{L}(\mu(\bm{T}^t), \bm{T}^{N-t}) \rightarrow min$.
@@ -579,7 +579,7 @@
 		Каждая из $ k $ частей единожды используется для тестирования.
 		
 		\begin{figure}
-			\includegraphics[width=0.4\linewidth]{imgs/K-fold-validation}
+			\includegraphics[width=0.4\linewidth]{../Report/imgs/K-fold-validation}
 		\end{figure}
 		После чего решается задача оптимизации:
 		$CV_k = \frac{1}{k}\sum\limits_{i=1}^k\mathfrak{L}(\mu(\bm{T}^N \setminus \bm{T}_i), \bm{T}_i) \rightarrow min$.
@@ -612,7 +612,7 @@
 		\frametitle{Кросс-валидация: Random subsampling (Monte-Carlo cross-validation)}
 		Выборка разбивается в случайной пропорции. Процедура повторяется несколько раз.
 		\begin{figure}
-			\includegraphics[width=1\linewidth]{imgs/completecrossvalidation}
+			\includegraphics[width=1\linewidth]{../Report/imgs/completecrossvalidation}
 		\end{figure}
 	\end{frame}
 	
